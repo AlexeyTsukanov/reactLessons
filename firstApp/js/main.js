@@ -69,7 +69,7 @@ function start(){
 
     function writeYourGenres(p){
         for(let i = 1; i < 4; i++){
-            p.genres[i] = prompt(`your favorite genre number ${i}`);
+            p.genres[i-1] = prompt(`your favorite genre number ${i}`);
         }
     }
 
