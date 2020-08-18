@@ -25,10 +25,12 @@
 // }
 
 
-let number;
+// let number;
 
-console.log(number);
+// console.log(number);
 
-if(number){
-    console.log('true');
-}
+// if(number){
+//     console.log('true');
+// }
+
+console.log('Ежик' < 'яблоко');
