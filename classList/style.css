@@ -1,0 +1,24 @@
+.btn-block{
+    display: flex;
+    padding: 40px;
+    background-color: gray;
+}
+
+button{
+    width: 100px;
+    height: 50px;
+    background-color: yellow;
+    margin: 10px;
+}
+
+.blue{
+    background-color: blue;
+}
+
+.red{
+    background-color: red;
+}
+
+.green{
+    background-color: green;
+}
