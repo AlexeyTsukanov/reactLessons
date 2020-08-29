@@ -85,7 +85,7 @@ window.addEventListener('DOMContentLoaded', () => {
         }ß
     });
 
-    const timerID = setTimeout( openModalWindow , 5000);
+    // const timerID = setTimeout( openModalWindow , 5000);
 
     window.addEventListener('scroll', showModalByScroll);
 
@@ -174,17 +174,34 @@ window.addEventListener('DOMContentLoaded', () => {
         },
     };
 
-    class menuCards{
-        constructor(menuName, description, price, imagSrc, imagDescr){
-        this.menuName = menuName;
-        this.description = description;
-        this.price = price;
-        this.imagSrc = imagSrc;
-        this.imagDescr = imagDescr;
+    class MenuCards{
+        constructor(menuName, description, price, imagSrc, imagDescr, 
+            parrentSelector, ...classes){
+            this.menuName = menuName;
+            this.description = description;
+            this.price = price;
+            this.imagSrc = imagSrc;
+            this.imagDescr = imagDescr;
+            this.parrentSelector = parrentSelector;
+            this.classes = classes;
+            this.transfer = 27;
+            this.changeToUAH();
         }
 
-        showCard(){
-            return `<div class="menu__item">
+        changeToUAH(){
+            this.price = this.price * this.transfer;
+        }
+
+        render(){
+            const element = document.createElement('div');
+            if(this.classes.length === 0){
+                this.element = 'menu__item';
+                element.classList.add(this.element);
+            }
+            else{
+                this.classes.forEach(className => element.classList.add(className));
+            }
+            element.innerHTML = `
                         <img src="${this.imagSrc}" alt="${this.imagDescr}">
                         <h3 class="menu__item-subtitle">Меню "${this.menuName}"</h3>
                         <div class="menu__item-descr">${this.description}</div>
@@ -192,29 +209,22 @@ window.addEventListener('DOMContentLoaded', () => {
                         <div class="menu__item-price">
                             <div class="menu__item-cost">Цена:</div>
                             <div class="menu__item-total"><span>${this.price}</span> грн/день</div>
-                        </div>
-                    </div>`;
+                        </div>`;
+            this.parrentSelector.append(element);
         }
     }
 
     const menuSection = document.querySelector('.menu'),
         menuContainer = menuSection.querySelector('.container');
 
-    const cardFitness = new menuCards(menuesDb.fitnes.name, 
+    new MenuCards(menuesDb.fitnes.name, 
         menuesDb.fitnes.description, menuesDb.fitnes.price, 
-        menuesDb.fitnes.imagSrc, menuesDb.fitnes.imagDescr);
-    const cardPremium = new menuCards(menuesDb.premium.name, 
+        menuesDb.fitnes.imagSrc, menuesDb.fitnes.imagDescr, menuContainer, 'menu__item').render();
+    new MenuCards(menuesDb.premium.name, 
         menuesDb.premium.description, menuesDb.premium.price, 
-        menuesDb.premium.imagSrc, menuesDb.premium.imagDescr);
-    const cardPost = new menuCards(menuesDb.post.name, 
+        menuesDb.premium.imagSrc, menuesDb.premium.imagDescr, menuContainer, 'menu__item').render();
+    new MenuCards(menuesDb.post.name, 
         menuesDb.post.description, menuesDb.post.price, 
-        menuesDb.post.imagSrc, menuesDb.post.imagDescr);
-
-
-    
-    menuContainer.innerHTML = "";
-    menuContainer.innerHTML += cardFitness.showCard();
-    menuContainer.innerHTML += cardPremium.showCard();
-    menuContainer.innerHTML += cardPost.showCard();
+        menuesDb.post.imagSrc, menuesDb.post.imagDescr, menuContainer, 'menu__item').render();
 
 });

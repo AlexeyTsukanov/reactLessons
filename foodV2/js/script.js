@@ -135,8 +135,7 @@ window.addEventListener('DOMContentLoaded', () => {
   /** --------------modal----------- */
 
   const modal = document.querySelector('.modal'),
-        modalOpen = document.querySelectorAll('[data-modal]'),
-        modalClose = document.querySelector('[data-close]');
+        modalOpen = document.querySelectorAll('[data-modal]');
 
   function closeModalWindow() {
     modal.style.display = 'none';
@@ -159,9 +158,10 @@ window.addEventListener('DOMContentLoaded', () => {
   modalOpen.forEach(btn => {
     btn.addEventListener('click', openModalWindow);
   });
-  modalClose.addEventListener('click', closeModalWindow);
+
+
   modal.addEventListener('click', e => {
-    if (e.target === modal) {
+    if (e.target === modal || e.target.getAttribute('data-close') == '') {
       closeModalWindow();
     }
   });
@@ -169,9 +169,9 @@ window.addEventListener('DOMContentLoaded', () => {
     if (e.code === 'Escape') {
       closeModalWindow();
     }
-
-    ß;
-  }); // const timerID = setTimeout( openModalWindow , 5000);
+  }); 
+  
+  const timerID = setTimeout( openModalWindow , 50000);
 
   window.addEventListener('scroll', showModalByScroll);
   /** --------timer ---------- */
@@ -229,30 +229,6 @@ window.addEventListener('DOMContentLoaded', () => {
    * --------------cards------------------
    */
 
-  const menuesDb = {
-    fitnes: {
-      name: 'Фитнес',
-      description: 'Меню "Фитнес" - это новый подход к приготовлению блюд: больше свежих овощей и фруктов. Продукт активных и здоровых людей. Это абсолютно новый продукт с оптимальной ценой и высоким качеством!',
-      price: '229',
-      imagSrc: 'img/tabs/vegy.jpg',
-      imagDescr: 'vegy'
-    },
-    premium: {
-      name: 'Премиум',
-      description: 'В меню “Премиум” мы используем не только красивый дизайн упаковки, но и качественное исполнение блюд. Красная рыба, морепродукты, фрукты - ресторанное меню без похода в ресторан!',
-      price: '550',
-      imagSrc: 'img/tabs/elite.jpg',
-      imagDescr: 'elite'
-    },
-    post: {
-      name: 'Постное',
-      description: 'Меню “Постное” - это тщательный подбор ингредиентов: полное отсутствие продуктов животного происхождения, молоко из миндаля, овса, кокоса или гречки, правильное количество белков за счет тофу и импортных вегетарианских стейков.',
-      price: '430',
-      imagSrc: 'img/tabs/post.jpg',
-      imagDescr: 'post'
-    }
-  };
-
   class MenuCards {
     constructor(menuName, description, price, imagSrc, imagDescr, parrentSelector, ...classes) {
       this.menuName = menuName;
@@ -260,7 +236,7 @@ window.addEventListener('DOMContentLoaded', () => {
       this.price = price;
       this.imagSrc = imagSrc;
       this.imagDescr = imagDescr;
-      this.parrentSelector = parrentSelector;
+      this.parrentSelector = document.querySelector(parrentSelector);
       this.classes = classes;
       this.transfer = 27;
       this.changeToUAH();
@@ -282,7 +258,7 @@ window.addEventListener('DOMContentLoaded', () => {
 
       element.innerHTML = `
                         <img src="${this.imagSrc}" alt="${this.imagDescr}">
-                        <h3 class="menu__item-subtitle">Меню "${this.menuName}"</h3>
+                        <h3 class="menu__item-subtitle">${this.menuName}</h3>
                         <div class="menu__item-descr">${this.description}</div>
                         <div class="menu__item-divider"></div>
                         <div class="menu__item-price">
@@ -294,11 +270,243 @@ window.addEventListener('DOMContentLoaded', () => {
 
   }
 
-  const menuSection = document.querySelector('.menu'),
-        menuContainer = menuSection.querySelector('.container');
-  new MenuCards(menuesDb.fitnes.name, menuesDb.fitnes.description, menuesDb.fitnes.price, menuesDb.fitnes.imagSrc, menuesDb.fitnes.imagDescr, menuContainer, 'menu__item').render();
-  new MenuCards(menuesDb.premium.name, menuesDb.premium.description, menuesDb.premium.price, menuesDb.premium.imagSrc, menuesDb.premium.imagDescr, menuContainer, 'menu__item').render();
-  new MenuCards(menuesDb.post.name, menuesDb.post.description, menuesDb.post.price, menuesDb.post.imagSrc, menuesDb.post.imagDescr, menuContainer, 'menu__item').render();
+  const getResource = async (url) => {
+    const res = await fetch(url);
+
+    if(!res.ok){
+      throw new Error(`Couldn't fetch url ${url}, status: ${res.status}`);
+    }
+
+   return await res.json();
+ }
+
+//  getResource('http://localhost:3000/menu')
+//  .then(data => {
+//    data.forEach(({title, descr, price, altimg, img}) => {
+//     new MenuCards(title, descr, price, img, altimg, '.menu .container', 'menu__item').render();
+//    });
+//  });
+
+axios.get('http://localhost:3000/menu')
+.then(item => {
+     item.data.forEach(({title, descr, price, altimg, img}) => {
+      new MenuCards(title, descr, price, img, altimg, '.menu .container', 'menu__item').render();
+     })
+    })
+.catch(function (error) {
+  console.log(error);
+});
+
+  /**
+   * ------forms---------
+   */
+
+   const forms = document.querySelectorAll('form'),
+        prevModalDialog = document.querySelector('.modal__dialog');
+
+   const message = {
+     loading: 'img/form/spinner.svg',
+     seccess: 'We will call you soon!',
+     failur: 'Error!'
+   };
+
+   forms.forEach(i => bindPostData(i));
+
+   const postData = async (url, data) => {
+     const res = await fetch(url, {
+      method: 'POST',
+      body: data,
+      headers: {
+        'Content-type' : 'application/json'
+      }
+    });
+    return await res.json();
+  }
+
+   function bindPostData(form) {
+     form.addEventListener('submit', (e) => {
+      e.preventDefault();
+
+      const statusMassage = document.createElement('img');
+      statusMassage.src = message.loading;
+      statusMassage.style.cssText = `
+        display: block;
+        margin: 0 auto;
+        backgroung: white;
+      `;
+      form.insertAdjacentElement('afterend', statusMassage);
+
+      // const request = new XMLHttpRequest();
+      // request.open('POST', 'server.php');
+      //request.setRequestHeader('Content-type', 'application/json');
+      const formData = new FormData(form);
+
+      //const object = {};
+
+      // formData.forEach(function(value, key){
+      //   object[key] = value;
+      // });
+
+      const json = JSON.stringify(Object.fromEntries(formData.entries()));
+
+      postData('http://localhost:3000/requests', json)
+      .then(data => {
+        console.log(data);
+        showThanksModal(message.seccess);
+        statusMassage.remove();
+      }).catch(request => {
+        console.log(request);
+        showThanksModal(message.failur);
+      }).finally(() => {
+        form.reset();
+      });
+
+      //const json = JSON.stringify(object);
+
+      // request.send(json);
+      
+      // request.addEventListener('load', () => {
+      //   if(request.status === 200){
+      //     showThanksModal(message.seccess);
+      //     form.reset();
+      //     statusMassage.remove();
+      //   }
+      //   else{
+      //     showThanksModal(message.failur);
+      //   }
+      // });
+     });
+   }
+
+
+   function showThanksModal(message) {
+      
+     openModalWindow();
+
+     const thanksModal = document.createElement('div');
+     thanksModal.classList.add('modal__dialog');
+     thanksModal.innerHTML = `
+      <div class="modal__content">
+        <div data-close="" class="modal__close">×</div>
+        <div class="modal__title">${message}</div>
+      </div> 
+     `;
+
+     modal.innerHTML = '';
+
+     document.querySelector('.modal').append(thanksModal);
+     setTimeout(() => {
+       thanksModal.remove();
+       document.querySelector('.modal').append(prevModalDialog);
+       closeModalWindow();
+     }, 4000);
+   }
+
+
+   /**
+    * 
+    * ------slider--------
+    */
+
+
+    const slider = document.querySelector('.offer__slider'),
+          sliderItems = slider.querySelectorAll('.offer__slide');
+          sliderNav = document.createElement('div'),
+          prevArrow = document.createElement('div'),
+          nextArrow = document.createElement('div');
+            
+          sliderNav.classList.add('offer__slider-counter');
+          prevArrow.classList.add('offer__slider-prev');
+          nextArrow.classList.add('offer__slider-next');
+
+          let currentSlideNumber = 0;
+
+          function addSliderNav(prevAttowSrc, nextArrowSrc, length, ){
+            prevArrow.innerHTML = `<img src="${prevAttowSrc}" alt="prev">`
+            nextArrow.innerHTML = `<img src="${nextArrowSrc}" alt="next">`
+            function sliderNumberBlock() {
+              const currentNumber = document.createElement('span');
+              const totalNumber = document.createElement('span');
+              currentNumber.setAttribute("id", "current");
+              totalNumber.setAttribute("id", "total");
+              currentNumber.innerHTML = '01';
+              totalNumber.innerHTML = addZero(length);
+              return `${currentNumber.outerHTML} / ${totalNumber.outerHTML}`
+            }
+            sliderNav.insertAdjacentHTML('beforeend', prevArrow.outerHTML);
+            sliderNav.insertAdjacentHTML('beforeend', sliderNumberBlock());
+            sliderNav.insertAdjacentHTML('beforeend', nextArrow.outerHTML);
+            return sliderNav;
+          }
+
+          slider.insertAdjacentHTML('afterbegin', addSliderNav('icons/left.svg', 'icons/right.svg', sliderItems.length).outerHTML);
+          
+          sliderItems.forEach(item => {
+            item.classList.add('hide');
+          });
+
+          function showCurrentSlide(arr, numb = 0){
+            arr.forEach((item, place) => {
+              if(numb == place){
+                item.classList.add('show');
+                item.classList.remove('hide');
+              }
+              else{
+                item.classList.add('hide');
+                item.classList.remove('show');
+              }
+            })
+          }
+
+          showCurrentSlide(sliderItems, currentSlideNumber);
+
+
+          document.querySelector('.offer__slider-next').addEventListener('click', () => {
+            currentSlideNumber++;
+            if(currentSlideNumber < sliderItems.length){
+              showCurrentSlide(sliderItems, currentSlideNumber);
+              showCurrentSlideNumber(currentSlideNumber);
+            }
+            else{
+              currentSlideNumber = 0
+              showCurrentSlide(sliderItems, currentSlideNumber);
+              showCurrentSlideNumber(currentSlideNumber);
+            }
+          });
+
+          document.querySelector('.offer__slider-prev').addEventListener('click', () => {
+            currentSlideNumber--;
+            if(currentSlideNumber >= 0){
+              showCurrentSlide(sliderItems, currentSlideNumber);
+              showCurrentSlideNumber(currentSlideNumber);
+            }
+            else{
+              currentSlideNumber = --sliderItems.length;
+              showCurrentSlide(sliderItems, currentSlideNumber);
+              showCurrentSlideNumber(currentSlideNumber);
+            }
+          });
+
+          function showCurrentSlideNumber(number){
+            document.querySelector('#current').innerHTML = addZero(number+1);
+          }
+
+
+
+   /**
+    * 
+    * -------use API--------------
+    */
+
+  //  fetch('https://jsonplaceholder.typicode.com/posts', {
+  //    method: 'POST',
+  //    body: JSON.stringify({name: 'Alex'}),
+  //    headers: {
+  //      'Content-type' : 'application/json'
+  //    }
+  //  })
+  //   .then(response => response.json())
+  //   .then(json => console.log(json));
 });
 
 /***/ })
